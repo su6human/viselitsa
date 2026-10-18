@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Виселица на двоих</title>
+<meta name="description" content="Виселица для двух игроков онлайн: у каждого своё слово и своя виселица. Кто первым отгадает слово, тот выиграл.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Neucha&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Виселица</h1>
+    <p class="tag">на двоих · у каждого своё слово</p>
+    <div class="roombar" id="roombar" hidden>
+      <button class="chip" id="chip-code" type="button" title="Скопировать код комнаты">Комната <b id="code-chip"></b></button>
+      <button class="small" id="btn-leave" type="button">Выйти</button>
+    </div>
+  </header>
+  <div class="notice" id="conn" hidden>Нет связи с сервером. Переподключаемся…</div>
+
+  <!-- Вход -->
+  <section class="screen" id="s-join">
+        <div class="card stack">
+      <div>
+        <label for="in-name">Твоё имя</label>
+        <input id="in-name" maxlength="16" autocomplete="nickname" placeholder="Имя или ник">
+      </div>
+    </div>
+    <div class="two">
+      <div class="card stack">
+        <h2>Новая комната</h2>
+        <p class="muted">Получишь четыре цифры. Назови их второму игроку.</p>
+        <div><button class="primary" id="btn-create" type="button" disabled>Создать комнату</button></div>
+      </div>
+      <div class="card stack">
+        <h2>Есть код?</h2>
+        <div>
+          <label for="in-code">Код комнаты</label>
+          <input id="in-code" class="code-input" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="0000">
+        </div>
+        <div><button id="btn-join" type="button" disabled>Войти</button></div>
+      </div>
+    </div>
+    <p class="err" id="join-err" role="alert"></p>
+    <div class="card rules">
+      <h2>Как играем</h2>
+      <ol>
+        <li>Каждый загадывает слово сопернику, у вас два разных слова.</li>
+        <li>Оба одновременно открывают свои слова по буквам.</li>
+        <li>За каждую ошибку к виселице добавляется часть человечка. На седьмой ошибке игрока вешают.</li>
+        <li>Кто первым отгадал слово, тот выиграл. Кого первым повесили, тот проиграл.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- Ожидание второго игрока -->
+  <section class="screen" id="s-wait" hidden>
+    <div class="card stack center">
+      <p class="muted" id="wait-note" hidden></p>
+      <p class="muted">Код комнаты</p>
+      <div class="bigcode" id="big-code"></div>
+      <div class="row" style="justify-content:center"><button class="primary" id="btn-copy" type="button">Скопировать код</button> <button id="btn-link" type="button">Скопировать ссылку</button></div>
+      <p>Второй игрок открывает этот сайт, вводит код и нажимает «Войти». Или отправьте ему ссылку: код подставится сам.</p>
+      <p class="muted">Ждём второго игрока<span class="dots"></span></p>
+    </div>
+  </section>
+
+  <!-- Загадываем слова -->
+  <section class="screen" id="s-setup" hidden>
+    <div class="roster" aria-live="polite">
+      <span class="pill" id="pill-me"><i></i><span></span></span>
+      <span class="pill" id="pill-opp"><i></i><span></span></span>
+    </div>
+    <div class="card stack">
+      <h2>Загадай слово для <span id="opp-name-setup"></span></h2>
+      <form class="stack" id="form-word" autocomplete="off">
+        <div>
+          <label for="in-word">Слово (3–16 русских букв)</label>
+          <input id="in-word" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Например, самолёт">
+        </div>
+        <div>
+          <label for="in-hint">Подсказка (необязательно)</label>
+          <input id="in-hint" maxlength="32" autocomplete="off" placeholder="Например, транспорт">
+        </div>
+        <div class="row">
+          <button class="primary" type="submit" id="btn-ready">Загадать</button>
+          <button type="button" id="btn-random">Случайное слово</button>
+        </div>
+        <p class="err" id="word-err" role="alert"></p>
+      </form>
+      <div class="stack" id="word-locked" hidden>
+        <p class="muted">Ты загадал слово:</p>
+        <div><span class="locked-word" id="locked-word"></span></div>
+        <p class="muted" id="locked-hint"></p>
+        <p class="muted" id="locked-wait"></p>
+        <div><button type="button" id="btn-edit" class="small">Изменить слово</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Игра и итог -->
+  <section class="screen" id="s-play" hidden>
+    <div class="card banner" id="banner" aria-live="polite" hidden>
+      <div class="grade" id="grade"></div>
+      <div class="btext">
+        <h2 id="btitle"></h2>
+        <p id="bsub"></p>
+        <p class="muted" id="bnote"></p>
+        <div class="row">
+          <button class="primary" id="btn-rematch" type="button">Реванш</button>
+          <button id="btn-leave2" type="button">Выйти из комнаты</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="arena">
+      <article class="card board me" id="b-me">
+        <div class="bgrid">
+          <div class="fig" id="me-fig"></div>
+          <div class="side">
+            <div class="who"><span class="role">Ты</span> · <span id="me-name"></span></div>
+            <p class="hint" id="me-hint"></p>
+            <div class="pips" id="me-pips" aria-hidden="true"></div>
+            <p class="wrong" id="me-wrong" aria-label="Ошибочные буквы"></p>
+          </div>
+          <div class="slots" id="me-slots"></div>
+          <div class="kbd" id="kbd" role="group" aria-label="Буквы"></div>
+        </div>
+      </article>
+
+      <article class="card board opp" id="b-opp">
+        <div class="bgrid">
+          <div class="fig" id="opp-fig"></div>
+          <div class="side">
+            <div class="who" id="opp-name"></div>
+            <div class="pips" id="opp-pips" aria-hidden="true"></div>
+            <p class="wrong" id="opp-wrong"></p>
+            <p class="prog" id="opp-prog"></p>
+          </div>
+          <div class="slots" id="opp-slots"></div>
+        </div>
+      </article>
+    </div>
+  </section>
+</div>
+
+<div class="toast-host"><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
